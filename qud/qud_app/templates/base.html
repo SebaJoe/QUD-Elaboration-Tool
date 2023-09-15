@@ -1,0 +1,906 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - QUD Sim</title> 
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<script
+  src="https://code.jquery.com/jquery-3.7.0.js"
+  integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+  crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+<link rel='stylesheet' href={{ url_for('static', filename='jquery.highlight-within-textarea.css') }}>
+<script src={{ url_for('static', filename='jquery.highlight-within-textarea.js') }}></script>
+
+<style>
+  .hwt-container {
+      background-color: #f8f9fa;
+      width: 100%;
+  }
+
+  .hwt-content {
+      width: 100%;
+      height: 300px;
+      padding: 20px;
+      border: 1px solid #adb5bd;
+      border-radius: 5px;
+      color: inherit;
+  }
+
+  .edit-area {
+      width: 100%;
+      height: auto;
+  }
+
+  .hwt-input:focus {
+      outline-color: #495057;
+  }
+
+  .hwt-content mark {
+      border-radius: 3px;
+      background-color: #d0bfff;
+  }
+
+  .hwt-content mark.red {
+      background-color: #ffc9c9;
+  }
+
+  .hwt-content mark.blue {
+      background-color: #a3daff;
+  }
+
+  .hwt-content mark.yellow {
+      background-color: #ffec99;
+  }
+
+  .list-group-item {
+      background-color: #CCFFCC;
+  }
+
+  .q_highlight {
+      background-color: #ffc9c9;
+      border-radius: 5px;
+  }
+
+  img {
+      max-width: 100%;
+      max-height: 20px;
+  }
+
+  .split {
+      height: 100%;
+      width: 50%;
+      position: fixed;
+      z-index: 1;
+      top: 10%;
+      overflow-x: hidden;
+  }
+
+
+
+  .left {
+      left: 0;
+  }
+
+  .right {
+      right: 0;
+      padding-right: 25px;
+      padding-left: 25px;
+  }
+
+  .btn:focus,.btn:active {
+      outline: none !important;
+      box-shadow: none;
+  }
+
+  ::-webkit-input-placeholder {
+      font-style: italic;
+  }
+  :-moz-placeholder {
+      font-style: italic;  
+  }
+  ::-moz-placeholder {
+      font-style: italic;  
+  }
+  :-ms-input-placeholder {  
+      font-style: italic; 
+  }
+  
+</style>
+
+{% block content %}
+<nav class="navbar bg-body-tertiary navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">QUD Elaboration Tool</a>
+  </div>
+</nav>
+<div class="container split left">
+  <div class="row">
+    <div class="col-sm">
+      <div class="mb-3">
+        <textarea class="form-control hwt-content shadow-none" rows="10" id="exampleFormControlTextarea1" rows="3" placeholder="Enter text:"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-sm text-center">
+      <button type="button" class="btn btn-primary" id="lock-btn">Lock for QUD</button>
+    </div> 
+  </div>
+</div>
+<div class='container split right'>
+  <div class="row">
+    <div class="col">
+      <div class="input-group mb-3">
+        <input type="text" class="form-control shadow-none" id="exampleFormControlInput1" placeholder="question" disabled>
+        <div class="input-group-append">
+          <button type="button" class="btn btn-primary rounded-right" id="ask-btn">Ask</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row ajax-hide text-center">
+    <div class="col mb-3">
+      <img src="{{url_for('static', filename='loading-buffering.gif')}}"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <ul class="list-group" id="output-lst">
+        <!--<li class="list-group-item">
+            <div class="row">
+              <div class="col-sm mb-3 mt-3">
+                Quantum
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm mb-2"><button class="btn btn-primary mr-3">Accept</button>
+                <button class="btn btn-primary">Deny</button></div>
+            </div>
+        </li>-->
+        <!--<li class="list-group-item">
+            <div class="row">
+              <div class="col-sm mb-3 mt-3">
+                <h2><span class="q_highlight">high</span>: Quest</h2>
+                <p>Quantum</p>
+              </div>
+              <div class="col-1">
+                <button type="button" class="btn btn-default remove-btn">
+                  <i class="bi bi-toggle-on"></i>
+                </button>
+                <button type="button" class="btn btn-default edi-btn">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+              </div>
+            </div>
+            <div class="fu-add">
+              <div class="row border-top">
+                <div class="col-sm mb-3 mt-3">
+                  <h5><strong>Quest</strong></h5>
+                  <p><em>Quantum</em></p>
+                </div>
+                <div class="col-1">
+                  <button type="button" class="btn btn-default remove-btn">
+                    <i class="bi bi-toggle-on"></i>
+                  </button>
+                  <button type="button" class="btn btn-default edi-btn">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm mb-2">
+                <div class="btn-group" role="group">
+                  <button class="btn btn-primary acc-btn">Accept</button>
+                  <button class="btn btn-primary den-btn">Deny</button>
+                  <button class="btn btn-primary edit-btn" edit_state="false">Edit</button>
+                </div>
+              </div>
+              <div class="col-sm-8 mb-2">
+                <div class="input-group">
+                  <input class="form-control" id="FollowUpInput" placeholder="follow-up question...">
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-primary" id="fu-ask-btn">Ask</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </li>-->
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+
+    function ReverseString(str) {
+      return str.split('').reverse().join('')
+    }
+    
+    function max(a, b)
+    {
+      if (a > b)
+        return a;
+      else
+        return b;
+    }
+    function printLCS(str1, str2) {
+      var len1 = str1.length;
+      var len2 = str2.length;
+      var lcs = new Array(len1 + 1);
+      for (var i = 0; i <= len1; i++) {
+        lcs[i] = new Array(len2 + 1)
+      }
+      for (var i = 0; i <= len1; i++) {
+        for (var j = 0; j <= len2; j++) {
+          if (i == 0 || j == 0) {
+            lcs[i][j] = 0;
+          }
+          else {
+            if (str1[i - 1] == str2[j - 1]) {
+              lcs[i][j] = 1 + lcs[i - 1][j - 1];
+            }
+            else {
+              lcs[i][j] = max(lcs[i][j - 1], lcs[i - 1][j]);
+            }
+          }
+        }
+      }
+      
+      var n = lcs[len1][len2];
+      var str="";
+      var i = len1;
+      var j = len2;
+      while(i>0&&j>0)
+      {
+        if(str1[i - 1] == str2[j - 1])
+        {
+          str += str1[i - 1];
+          i--;
+          j--;
+        }
+        else{
+          if(lcs[i][j-1]>lcs[i-1][j])
+          {
+            j--;
+          }
+          else
+          {
+            i--;
+          }
+        }
+      }
+      return ReverseString(str);
+    }
+
+
+    var lock_state = false;
+
+    $(".ajax-hide").hide();
+
+    $(document).ajaxStart(function() {
+      $(".ajax-hide").show();
+    });
+
+    $(document).ajaxStop(function() {
+      $(".ajax-hide").hide();
+    });
+
+    const selection = () => {
+      if (window.getSelection) {
+        try {
+          var ta = $('#exampleFormControlTextarea1').get(0);
+          return {str:ta.value.substring(ta.selectionStart, ta.selectionEnd), start:ta.selectionStart, end:ta.selectionEnd};
+        } catch (e) {
+          console.log('Cant get selection text')
+        }
+      } 
+      // For IE
+      if (document.selection && document.selection.type != "Control") {
+        return document.selection.createRange().text;
+      }
+    }
+
+    function getDiff(lcs, start_str, end_str) {
+      let deletions = [];
+      let insert_str = "";
+      let j = 0;
+      let start_ind = -1;
+      for (let i = 0; i < start_str.length; i++) {
+        if (lcs[j] === start_str[i]) {
+          if (insert_str !== "") {
+            deletions.push([insert_str, [start_ind, i]]);
+            start_ind = -1;
+            insert_str = "";
+          }
+          j++;
+        } else {
+          if (start_ind === -1) start_ind = i;
+          insert_str += start_str[i];
+        }
+      }
+      let insertions = [];
+      insert_str = "";
+      j = 0;
+      start_ind = -1;
+      for (let i = 0; i < end_str.length; i++) {
+        if (lcs[j] === end_str[i]) {
+          if (insert_str !== "") {
+            insertions.push([insert_str, [start_ind, i]]);
+            start_ind = -1;
+            insert_str = "";
+          }
+          j++;
+        } else {
+          if (start_ind === -1) start_ind = i;
+          insert_str += end_str[i];
+        }
+      }
+      return {del:deletions, ins:insertions};
+    }
+
+    var highlight_arr = [];
+    var highlight_assoc = {};
+
+    
+    function delete_from_list(li_id) {
+      highlight_arr.splice(highlight_arr.indexOf(highlight_assoc[li_id].highlight), 1);
+      delete highlight_assoc[li_id];
+      $("#exampleFormControlTextarea1").highlightWithinTextarea({
+        highlight: func
+      });
+      $("#" + li_id).remove();
+    }
+
+    function correctHighlights(old_text) {
+      var new_text=$("#exampleFormControlTextarea1").val();
+      //let lcs = printLCS("AGGTAB", "GXXTAYB");
+      //let diff = getDiff(lcs,"AGGTAB","GXXTAYB");
+      //console.log(diff);
+      if (old_text === new_text) {
+        return
+      } else {
+        let lcs = printLCS(old_text, new_text);
+        let diff = getDiff(lcs, old_text, new_text);
+        for (let i = 0; i < diff.del.length; i++) {
+          let del = diff.del[i];
+          let start_ind = del[1][0];
+          let end_ind = del[1][1];
+          let del_len = del[0].length;
+          let to_remove = [];
+          for (const [key, value] of Object.entries(highlight_assoc)) {
+            if(value.highlight.highlight[0] >= end_ind) {
+              highlight_assoc[key].highlight.highlight[0] -= del_len;
+              highlight_assoc[key].highlight.highlight[1] -= del_len;
+            } else if (value.highlight.highlight[0] >= start_ind || value.highlight.highlight[1] >= end_ind) {
+              to_remove.push(key);
+            }
+          }
+          for (const val of to_remove) {
+            delete_from_list(val);
+          }
+        }
+        for (let i = 0; i < diff.ins.length; i++) {
+          let ins = diff.ins[i];
+          let start_ind = ins[1][0];
+          let ins_len = ins[0].length;
+          for (const [key, value] of Object.entries(highlight_assoc)) {
+            if (value.highlight.highlight[0] >= start_ind) {
+              highlight_assoc[key].highlight.highlight[0] += ins_len;
+              highlight_assoc[key].highlight.highlight[1] += ins_len;
+            }
+          }
+        }
+        highlight_arr = [];
+        for (const [key, value] of Object.entries(highlight_assoc)) {
+          highlight_arr.push(value.highlight);
+        }
+      }
+    }
+
+
+    var old_text = "";
+    
+    $("#lock-btn").click(function (){
+      if (!lock_state) {
+        $("#exampleFormControlTextarea1").prop('readonly', true);
+        $("#lock-btn").html('Unlock');
+        correctHighlights(old_text);
+        $("#exampleFormControlTextarea1").highlightWithinTextarea({
+          highlight: func
+        });
+      } else {
+        old_text = $("#exampleFormControlTextarea1").val();
+        $("#exampleFormControlTextarea1").prop('readonly', false);
+        $("#lock-btn").html('Lock for QUD');
+        if (Array.isArray(highlight_arr[highlight_arr.length - 1])) {
+          highlight_arr.pop();
+        }
+        $('#exampleFormControlTextarea1').highlightWithinTextarea('destroy');
+      }
+      lock_state = !lock_state
+    });
+
+
+
+    function func() {
+      highlight_arr = [...new Set(highlight_arr)];
+      let entire_text = $("#exampleFormControlTextarea1").val();
+      return highlight_arr;
+    }
+
+    $(document).on("mouseup", "#exampleFormControlTextarea1", function(){
+      if (lock_state) {
+        let select = selection();
+        console.log(highlight_arr[highlight_arr.length - 1]);
+        console.log(Array.isArray(highlight_arr[highlight_arr.length - 1]));
+        if (highlight_arr.length > 0 && Array.isArray(highlight_arr[highlight_arr.length - 1])) {
+          highlight_arr[highlight_arr.length - 1] = [select.start, select.end];
+        } else
+          highlight_arr.push([select.start, select.end]);
+        console.log(highlight_arr);
+        $("#exampleFormControlTextarea1").highlightWithinTextarea({
+          highlight: func
+        });
+        $("#exampleFormControlInput1").prop('disabled', false);
+      }
+    });
+
+    function create_item(text, question, id, h_text) {
+      
+      let base_str = '<li class="list-group-item mb-2 rounded-bottom rounded-top" id="LI_ID"> \
+          <div class="row fu-cell" id="FU_LI_ID_0"> \
+            <div class="col-sm mb-3 mt-3"> \
+              <h2><span class="q_highlight">LI_HI</span>: Quest</h2> \
+              <p>Quantum</p> \
+            </div> \
+            <div class="col-1">\
+              <button type="button" class="btn btn-default remove-btn" hidden>\
+                <i class="bi bi-toggle-on"></i>\
+              </button>\
+              <button type="button" class="btn btn-default edi-btn" hidden>\
+                <i class="bi bi-pencil-fill"></i>\
+              </button>\
+            </div>\
+          </div>\
+          <div class="fu-add"></div>\
+<div class="row ajax-hide2 text-center"> \
+    <div class="col mb-3"> \
+      <img src="{{url_for('static', filename='loading-buffering.gif')}}"/> \
+    </div> \
+  </div> \
+          <div class="row">\
+            <div class="col-sm mb-2 ask-rm">\
+              <div class="btn-group" role="group">\
+              <div class="btn-group" role="group"> \
+                <button id="DD_LI_ID" class="btn btn-primary acc-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Accept</button>\
+<div class="dropdown-menu" aria-labelledby="DD_LI_ID"> \
+<a class="dropdown-item trad-ins">Insert the sentence after</a> \
+<a class="dropdown-item op-ins">Optimized Insert &trade;</a> \
+</div>\
+</div> \
+                <button class="btn btn-primary den-btn">Deny</button>\
+                <button class="btn btn-primary edit-btn" edit_state="false">Edit</button>\
+              </div>\
+            </div>\
+            <div class="col-sm-8 mb-2 inp-row">\
+              <div class="input-group">\
+                <input class="form-control shadow-none fu-input" placeholder="follow-up question...">\
+                <div class="input-group-append">\
+                  <button type="button" class="btn btn-primary fu-ask-btn">Ask</button>\
+                </div>\
+              </div>\
+            </div>\
+          </div>\
+        </li>';
+
+      return base_str
+        .replace("Quantum", text)
+        .replace("Quest", question)
+        .replaceAll("LI_ID", id)
+        .replace("LI_HI", h_text);
+    }
+
+    var id_gen = 0;
+
+    $("#ask-btn").click(function() {
+      if (highlight_arr.length > 0 && Array.isArray(highlight_arr[highlight_arr.length - 1])) {
+        let bounds = highlight_arr[highlight_arr.length - 1];
+        highlight_arr[highlight_arr.length - 1] = {highlight: bounds, className: 'red'};
+        $("#exampleFormControlTextarea1").highlightWithinTextarea({
+          highlight: func
+        });
+        let entire_doc = $("#exampleFormControlTextarea1").val();
+        let end_ind = entire_doc.indexOf(".", bounds[0]);
+        console.log(end_ind);
+        if (end_ind == -1) end_ind = entire_doc.length - 1;
+        let context = entire_doc.substring(0, end_ind + 1);
+        let question = $("#exampleFormControlInput1").val();
+        //$("#output-lst").append(create_item("", question));
+        $("#exampleFormControlInput1").val("");
+        $("#exampleFormControlInput1").prop('disabled', true);
+        $.ajax({
+          type: "POST",
+          url: "/",
+          data: JSON.stringify({type: "main", context: context, question: question}),
+          contentType: "application/json",
+          dataType: 'json',
+          success: function (result) {
+            console.log(result);
+            $("#output-lst").prepend(create_item(result.output, question, "LI_" + id_gen, entire_doc.substring(bounds[0], bounds[1])));
+            $("#output-lst .ajax-hide2").hide();
+            highlight_assoc["LI_" + id_gen] = {
+              highlight: highlight_arr[highlight_arr.length - 1],
+              id: id_gen,
+              main_question: question,
+              main_edit_state: false,
+              main_output: result.output,
+              h_text: entire_doc.substring(bounds[0], bounds[1]),
+              context: context,
+              qa_list:[
+                {
+                  question: question,
+                  output: result.output,
+                  edit_state: false,
+                  removed: false
+                }
+              ],
+              combined_output: "nil",
+              follow_up_state: false,
+              comb_mode: false
+            };
+            console.log(highlight_assoc["LI_" + id_gen]);
+          }, 
+          error: function () {
+            highlight_arr.pop();
+            $("#exampleFormControlTextarea1").highlightWithinTextarea({
+              highlight: func
+            });
+          }
+        });
+        id_gen++;
+      }
+    });
+
+    function follow_up_create(question, output, id) {
+      let base_str = '<div class="row border-top fu-cell" id="FU_ID"> \
+                <div class="col-sm mb-3 mt-3"> \
+                  <h5><strong>Quest</strong></h5> \
+                  <p><em>Quantum</em></p> \
+                </div> \
+                <div class="col-1 show-btn"> \
+                  <button type="button" class="btn btn-default remove-btn"> \
+                    <i class="bi bi-toggle-on"></i> \
+                  </button> \
+                  <button type="button" class="btn btn-default edi-btn"> \
+                    <i class="bi bi-pencil-fill"></i> \
+                  </button> \
+                </div> \
+              </div>';
+      return base_str.replace('FU_ID', id)
+        .replace("Quantum", output)
+        .replace("Quest", question);
+    }
+
+
+    $(document).on("click",".fu-ask-btn", function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      if ($("#" + li_id + " .fu-input").val() === "") return;
+      console.log(li_id);
+      console.log(highlight_assoc[li_id]);
+      if (!highlight_assoc[li_id].follow_up_state) {
+        $("#" + li_id + " .remove-btn").removeAttr('hidden');
+        $("#" + li_id + " .edi-btn").removeAttr('hidden');
+        $("#" + li_id + " .inp-row").removeClass("col-sm-8").addClass("col-sm");
+        $("#" + li_id + " .ask-rm").hide();
+        $("#" + li_id + " .input-group-append").append('<button type="button" class="btn btn-primary fu-comb-btn">Combine</button>');
+        highlight_assoc[li_id].follow_up_state = !highlight_assoc[li_id].follow_up_state;
+      }
+      //TODO
+
+      //get input
+      let question = $("#" + li_id + " .fu-input").val();
+      $("#" + li_id + " .fu-input").val("");
+      let context = highlight_assoc[li_id].context;
+      let qa_list = highlight_assoc[li_id].qa_list;
+      $("#" + li_id + " .ajax-hide2").show();
+      $.ajax({
+        type: "POST",
+        url: "/",
+        data: JSON.stringify({
+          type: "follow-up", 
+          question: question, 
+          context: context,
+          qa_list: qa_list
+        }),
+        contentType: "application/json",
+        dataType: 'json',
+        global: false,
+        success: function(result) {
+          $("#" + li_id + " .fu-add").append(follow_up_create(question, result.output, "FU_" + li_id + "_" + qa_list.length));
+          highlight_assoc[li_id].qa_list.push({
+            question: question,
+            output: result.output,
+            edit_state: false,
+            removed: false
+          });
+          console.log(highlight_assoc[li_id]);
+          $("#" + li_id + " .ajax-hide2").hide();
+        }
+      });
+    });
+
+
+    $(document).on("click", '.fu-comb-btn', function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      $("#" + li_id + " .inp-row").hide();
+      $("#" + li_id + " .ajax-hide2").show();
+      let context = highlight_assoc[li_id].context;
+      let qa_list = highlight_assoc[li_id].qa_list;
+      $.ajax({
+        type: "POST",
+        url: "/",
+        data: JSON.stringify({
+          type: "combine", 
+          context: context,
+          qa_list: qa_list
+        }),
+        contentType: "application/json",
+        dataType: 'json',
+        global: false,
+        success: function(result) {
+          $("#" + li_id + " .fu-add").append(follow_up_create("Combined Elaboration: ", result.output, "COMB_" + li_id));
+          $("#COMB_" + li_id + " .show-btn").hide();
+          highlight_assoc[li_id].comb_mode = true;
+          highlight_assoc[li_id].combined_output = result.output;
+          $("#" + li_id + " .ask-rm").show();
+          $("#" + li_id + " .ajax-hide2").hide();
+        }
+      });
+    });
+    
+
+    $(document).on("click", '.den-btn', function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      delete_from_list(li_id);
+    });
+
+
+    function typeWriter(txt, end_i, i, speed) {
+      if (i < txt.length) {
+        let cur_str = $("#exampleFormControlTextarea1").val();
+        let new_str = cur_str.slice(0, end_i + i) + txt[i] + cur_str.slice(end_i + i);
+        $("#exampleFormControlTextarea1").val(new_str);
+        highlight_arr.forEach(function (ele, ind) {
+          if (ele.highlight[0] >= end_i + i) {
+            highlight_arr[ind].highlight[0]++;
+            highlight_arr[ind].highlight[1]++;
+          }
+        });
+        for (const [key, value] of Object.entries(highlight_assoc)) {
+          if (value.highlight.highlight[0] >= end_i + i) {
+            highlight_assoc[key].highlight.highlight[0]++;
+            highlight_assoc[key].highlight.highlight[1]++;
+          }
+        }
+        $("#exampleFormControlTextarea1").highlightWithinTextarea("update");
+        i++;
+        setTimeout(typeWriter, speed, txt, end_i, i, speed);
+      }
+    }
+
+    $(document).on("click", '.trad-ins', function () {
+      
+      let output_val = "";
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      if (highlight_assoc[li_id].comb_mode) {
+        output_val = $("#COMB_" + li_id + " p").text(); 
+      } else {
+        output_val = $(this).closest('.list-group-item').find("p").text();
+      }
+      let bounds = highlight_assoc[li_id].highlight.highlight;
+      let entire_doc = $("#exampleFormControlTextarea1").val();
+      let end_ind = entire_doc.indexOf(".", bounds[0]);
+      if (end_ind == -1) end_ind = entire_doc.length - 1;     
+      delete_from_list(li_id);
+      typeWriter(" " + output_val, end_ind + 1, 0, 25);
+
+    });
+
+    function delete_delay(start_ind, delete_arr, i) {
+      if (i < delete_arr.length) {
+        let cur_str = $("#exampleFormControlTextarea1").val();
+        let del_entry = delete_arr[i];
+        let new_str = cur_str.slice(0, start_ind + del_entry[1][0]) + cur_str.slice(start_ind + del_entry[1][1]);
+        console.log(del_entry[0]);
+        console.log(cur_str.substring(start_ind + del_entry[1][0], start_ind + del_entry[1][1]));
+        $("#exampleFormControlTextarea1").val(new_str);
+        delete_arr.forEach(function (ele, ind) {
+          delete_arr[ind][1][0] -= del_entry[0].length;
+        delete_arr[ind][1][1] -= del_entry[0].length;
+        });
+        let to_remove = [];
+        for (const [key, value] of Object.entries(highlight_assoc)) {
+          if(value.highlight.highlight[0] >= del_entry[1][1]) {
+            highlight_assoc[key].highlight.highlight[0] -= del_len;
+            highlight_assoc[key].highlight.highlight[1] -= del_len;
+          } else if (value.highlight.highlight[0] >= del_entry[1][0] || value.highlight.highlight[1] >= del_entry[1][1]) {
+            to_remove.push(key);
+          }
+        }
+        for (const val of to_remove) {
+          delete_from_list(val);
+        }
+        highlight_arr = [];
+        for (const [key, value] of Object.entries(highlight_assoc)) {
+          highlight_arr.push(value.highlight);
+        }
+        $("#exampleFormControlTextarea1").highlightWithinTextarea("update");
+        console.log("DELETE");
+        setTimeout(delete_delay, 50, start_ind, delete_arr, i + 1);
+      }
+    }
+
+    function loop_typeWriter(bounds, insert, i) {
+      if (i < insert.length) {
+        console.log("INSERT");
+        typeWriter(insert[i][0], bounds[0] + insert[i][1][0], 0, 25);
+        setTimeout(loop_typeWriter, insert[i][0].length*50 + 200, bounds, insert, i + 1);
+      }
+    }
+
+    function typeWrite_with_diff(bounds, output) {
+      let orig = $("#exampleFormControlTextarea1").val().substring(bounds[0], bounds[1] + 1);
+      let lcs = printLCS(orig, output);
+      let diff = getDiff(lcs, orig, output);
+      console.log(diff.del);
+      console.log(diff.ins);
+      delete_delay(bounds[0], diff.del, 0);
+      setTimeout(loop_typeWriter, diff.del.length*200 + 400, bounds, diff.ins, 0);
+    }
+
+    $(document).on("click", '.op-ins', function () {
+
+      let output_val = "";
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      if (highlight_assoc[li_id].comb_mode) {
+        output_val = $("#COMB_" + li_id + " p").text(); 
+      } else {
+        output_val = $(this).closest('.list-group-item').find("p").text();
+      }
+      let bounds = highlight_assoc[li_id].highlight.highlight;
+      let entire_doc = $("#exampleFormControlTextarea1").val();
+      let end_ind = entire_doc.indexOf(".", bounds[0]);
+      let indices = [];
+      for (let i = 0; i < entire_doc.length; i++) {
+        if (entire_doc[i] === ".") indices.push(i);
+      }
+      let sent_bounds = [0, 0];
+      for (let i = 0; i < indices.length; i++) {
+        if (end_ind === indices[i]) { 
+          sent_bounds[0] = (i > 0) ? indices[i - 1] + 2: 0;
+          sent_bounds[1] = (i < indices.length - 1) ? indices[i + 1]: end_ind;
+        }
+      }
+      if (end_ind == -1) {
+        end_ind = entire_doc.length - 1;
+        sent_bounds = [indices[indices.length - 1] + 2, entire_doc.length - 1];
+      }
+      console.log(entire_doc.substring(sent_bounds[0], sent_bounds[1] + 1));
+      //delete_from_list(li_id);
+      //typeWriter(" " + output_val, end_ind + 1, 0, 25);
+      $.ajax({
+        type: "POST",
+        url: "/",
+        data: JSON.stringify({
+          type: "opt_insert", 
+          surround: entire_doc.substring(sent_bounds[0], sent_bounds[1] + 1),
+          insert_output: output_val,
+          h_text: highlight_assoc[li_id].h_text
+        }),
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          delete_from_list(li_id);
+          typeWrite_with_diff(sent_bounds, result.output);
+        }
+      });
+    }); 
+
+    
+
+
+    $(document).on("click", '.edit-btn', function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      let output_val = "";
+      if (!highlight_assoc[li_id].main_edit_state) {
+        if (highlight_assoc[li_id].comb_mode) {
+          output_val = $("#COMB_" + li_id).find("p").text();
+          $("#COMB_" + li_id ).find("p").replaceWith("<textarea class='edit-area'>" + output_val + "</textarea>");
+          console.log("Hello!");
+        } else {
+          output_val = $(this).closest('.list-group-item').find("p").text();
+          $(this).closest('.list-group-item').find("p").replaceWith("<textarea class='edit-area'>" + output_val + "</textarea>");
+        }
+        $(this).closest('.list-group-item').find(".acc-btn").prop('disabled', true);
+        $(this).closest('.list-group-item').find(".den-btn").prop('disabled', true);
+        $(this).html("Save");
+      } else {
+        if (highlight_assoc[li_id].comb_mode) {
+          output_val = $("#COMB_" + li_id).find("textarea").val();
+          $("#COMB_" + li_id).find("textarea").replaceWith("<p>" + output_val + "</p>");
+          console.log("Jeepers");
+        } else {
+          output_val = $(this).closest('.list-group-item').find("textarea").val();
+          $(this).closest('.list-group-item').find("textarea").replaceWith("<p>" + output_val + "</p>");
+        }
+        $(this).closest('.list-group-item').find(".acc-btn").prop('disabled', false);
+        $(this).closest('.list-group-item').find(".den-btn").prop('disabled', false);
+        $(this).html("Edit");
+        if (highlight_assoc[li_id].comb_mode) {
+          highlight_assoc[li_id].combined_output = output_val;
+        } else {
+          highlight_assoc[li_id].main_output = output_val;
+          highlight_assoc[li_id].qa_list[0].output = output_val;
+        }
+      }
+      highlight_assoc[li_id].main_edit_state = !highlight_assoc[li_id].main_edit_state;
+    });
+
+
+    $(document).on("click", '.edi-btn', function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      console.log("SDAKJDKJS");
+      console.log($(this).closest('.fu-cell'));
+      let fu_id = parseInt($(this).closest('.fu-cell').attr("id").split("_")[3]);
+      let qa_list = highlight_assoc[li_id].qa_list;
+      let output_val = "";
+      console.log($(this).closest('.fu-cell').attr("id"));
+      console.log(qa_list);
+      console.log(fu_id);
+      if (qa_list[fu_id].edit_state) {
+        output_val = $(this).closest('.fu-cell').find("textarea").val();
+        $(this).closest('.fu-cell').find("textarea").replaceWith("<p>" + output_val + "</p>");
+      } else {
+        console.log("SSFJKAJ");
+        output_val = $(this).closest('.fu-cell').find("p").text();
+        $(this).closest('.fu-cell').find("p").replaceWith("<textarea class='edit-area'>" + output_val + "</textarea>");
+      }
+      console.log(output_val);
+      
+      highlight_assoc[li_id].qa_list[fu_id].edit_state = !highlight_assoc[li_id].qa_list[fu_id].edit_state;
+      if (fu_id === 0) {
+        highlight_assoc[li_id].main_output = output_val;
+      }
+      highlight_assoc[li_id].qa_list[fu_id].output = output_val;
+    });
+    
+    $(document).on("click", '.remove-btn', function() {
+      let li_id = $(this).closest('.list-group-item').attr("id");
+      let fu_id = parseInt($(this).closest('.fu-cell').attr("id").split("_")[3]);
+      let qa_list = highlight_assoc[li_id].qa_list;
+      console.log(fu_id);
+      console.log(qa_list);
+      if (!qa_list[fu_id].removed) {
+        $(this).find("i").removeClass("bi-toggle-on").addClass("bi-toggle-off");
+        highlight_assoc[li_id].qa_list[fu_id].removed = true;
+      } else {
+        $(this).find("i").removeClass("bi-toggle-off").addClass("bi-toggle-on");
+        highlight_assoc[li_id].qa_list[fu_id].removed = false;
+      }
+      
+    });
+
+    console.log("hello world");
+  });
+</script>
+{% endblock scripts %}
+
+
